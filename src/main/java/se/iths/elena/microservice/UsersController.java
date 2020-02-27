@@ -47,4 +47,44 @@ public class UsersController {
         //headers.add("Location", "/api/persons/" + p.getId());
         return new ResponseEntity<>(p, headers, HttpStatus.CREATED);
     }
+
+    @DeleteMapping("/{id}")
+    ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        if (repository.existsById(id)) {
+            //log.info("Product deleted");
+            repository.deleteById(id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @PutMapping("/{id}")
+    ResponseEntity<User> replaceUser(@RequestBody User newUser, @PathVariable Long id) {
+        return repository.findById(id)
+                .map(user -> {
+                    user.setName(newUser.getName());
+                    repository.save(user);
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setLocation(linkTo(UsersController.class).slash(user.getId()).toUri());
+                    return new ResponseEntity<>(user, headers, HttpStatus.OK);
+                })
+                .orElseGet(() ->
+                        new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @PatchMapping("/{id}")
+    ResponseEntity<User> modifyUser(@RequestBody User newUser, @PathVariable Long id) {
+        return repository.findById(id)
+                .map(user -> {
+                    if (newUser.getName() != null)
+                        user.setName(newUser.getName());
+
+                    repository.save(user);
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setLocation(linkTo(UsersController.class).slash(user.getId()).toUri());
+                    return new ResponseEntity<>(user, headers, HttpStatus.OK);
+                })
+                .orElseGet(() ->
+                        new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
 }
