@@ -11,22 +11,22 @@ import java.util.stream.StreamSupport;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @Component
-class UsersModelAssembler implements RepresentationModelAssembler <User, EntityModel<User>> {
+class BooksModelAssembler implements RepresentationModelAssembler <Book, EntityModel<Book>> {
 
     @Override
-    public EntityModel<User> toModel(User user) {
-        return new EntityModel<>(user,
-                linkTo(methodOn(UsersController.class).one(user.getId())).withSelfRel(),
-                linkTo(methodOn(UsersController.class).all()).withRel("user"));
+    public EntityModel<Book> toModel(Book book) {
+        return new EntityModel<>(book,
+                linkTo(methodOn(BooksController.class).one(book.getId())).withSelfRel(),
+                linkTo(methodOn(BooksController.class).all()).withRel("book"));
     }
 
     @Override
-    public CollectionModel<EntityModel<User>> toCollectionModel(Iterable<? extends User> entities) {
+    public CollectionModel<EntityModel<Book>> toCollectionModel(Iterable<? extends Book> entities) {
         var collection = StreamSupport.stream(entities.spliterator(), false)
                 .map(this::toModel)
                 .collect(Collectors.toList());
 
         return new CollectionModel<>(collection,
-                linkTo(methodOn(UsersController.class).all()).withSelfRel());
+                linkTo(methodOn(BooksController.class).all()).withSelfRel());
     }
 }
