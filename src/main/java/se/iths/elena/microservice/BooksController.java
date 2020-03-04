@@ -44,7 +44,6 @@ public class BooksController {
         log.info("Saved to repository " + p);
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(linkTo(BooksController.class).slash(p.getId()).toUri());
-        //headers.add("Location", "/api/persons/" + p.getId());
         return new ResponseEntity<>(p, headers, HttpStatus.CREATED);
     }
 

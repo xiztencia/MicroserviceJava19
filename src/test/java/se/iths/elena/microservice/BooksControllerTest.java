@@ -1,6 +1,7 @@
 package se.iths.elena.microservice;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,12 +31,15 @@ public class BooksControllerTest {
     @Autowired
     MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @MockBean
     BooksRepository repository;
 
     @BeforeEach
     void setUp() {
-        when(repository.findAll()).thenReturn(List.of(new Book(1L, "Lolita","Vladimir Nabokov", 2011, 361, "Klassiker"), new Book(2L, "Slated", "Teri Terry", 2013, 368, "Familjproblem")));
+        when(repository.findAll()).thenReturn(List.of(new Book(1L, "Lolita", "Vladimir Nabokov", 2011, 361, "Klassiker"), new Book(2L, "Slated", "Teri Terry", 2013, 368, "Familjproblem")));
         when(repository.findById(1L)).thenReturn(Optional.of(new Book(1L, "Lolita", "Vladimir Nabokov", 2011, 361, "Klassiker")));
         when(repository.save(any(Book.class))).thenAnswer(invocationOnMock -> {
             Object[] args = invocationOnMock.getArguments();
@@ -48,9 +52,9 @@ public class BooksControllerTest {
     @Test
     void getAllReturnsListOfAllBooks() throws Exception {
         mockMvc.perform(
-                get("/api/books").contentType("application/hal+json"))
+                get("/api/books").contentType("application/json"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("_embedded.bookList[0]._links.self.href", is("http://localhost/api/book/1")))
+                .andExpect(jsonPath("_embedded.bookList[0]._links.self.href", is("http://localhost/api/books/1")))
                 .andExpect(jsonPath("_embedded.bookList[0].title", is("Lolita")));
         //Build json paths with: https://jsonpath.com/
     }
@@ -67,14 +71,15 @@ public class BooksControllerTest {
 
     @Test
     @DisplayName("Calls Get method with invalid id url /api/books/3")
-    void getOneBookWithInValidIdThree() throws Exception {
+    void getOneBookWithInValidIdFive() throws Exception {
         mockMvc.perform(
-                get("/api/books/3").accept(MediaType.APPLICATION_JSON))
+                get("/api/books/5").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void addNewBookWithPostReturnsCreatedPerson() throws Exception {
+    @DisplayName("Calls Post method with definite parameters")
+    void addNewBookWithPostReturnsCreatedBook() throws Exception {
         mockMvc.perform(
                 post("/api/books/")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -82,5 +87,35 @@ public class BooksControllerTest {
                 .andExpect(status().isCreated());
     }
 
+    @Test
+    @DisplayName("Calls Post method with missing parameters")
+    void addNoBookWithPostReturnsNotFound() throws Exception {
+        mockMvc.perform(
+                post("/api/books/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(""))
+                .andExpect(status().isNotFound());
+    }
 
+    @Test
+    @DisplayName("Calls Post method with parameters that already exist")
+    void addSameBookWithPostReturnsConflict() throws Exception {
+        mockMvc.perform(
+                post("/api/books/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":0,\"title\":\"Lolita\"}"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void registrationWorksThroughAllLayers() throws Exception {
+        Book book = new Book(0L, "Lolita", "Vladimir Nabokov", 2011, 361, "Klassiker");
+
+        mockMvc.perform(post("/api/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(book)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("title").value("Lolita"))
+                .andExpect(jsonPath("id").isNumber());
+    }
 }
