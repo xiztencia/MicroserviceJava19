@@ -18,8 +18,7 @@ import java.util.Optional;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,7 +56,6 @@ public class BooksControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("_embedded.bookList[0]._links.self.href", is("http://localhost/api/books/1")))
                 .andExpect(jsonPath("_embedded.bookList[0].title", is("Lolita")));
-        //Build json paths with: https://jsonpath.com/
     }
 
     @Test
@@ -66,7 +64,6 @@ public class BooksControllerTest {
         mockMvc.perform(
                 get("/api/books/1").accept("application/hal+json"))
                 .andExpect(status().isOk())
-                //.andExpect(jsonPath("content[0].links[2].rel", is("self")))
                 .andExpect(jsonPath("_links.self.href", is("http://localhost/api/books/1")));
     }
 
@@ -99,5 +96,35 @@ public class BooksControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("title").value("Lolita"))
                 .andExpect(jsonPath("id").isNumber());
+    }
+
+    @Test
+    @DisplayName("Calls Put method with url /api/books/1")
+    void replaceBookWithPutReturnsReplacedBook() throws Exception {
+        mockMvc.perform(
+                put("/api/books/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":0,\"title\":\"Fated\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Calls Patch method with url /api/books/1")
+    void modifyBookWithPatchReturnsRModifiedBook() throws Exception {
+        mockMvc.perform(
+                patch("/api/books/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":0,\"title\":\"Fated\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Calls Delete method with url /api/books/1")
+    void removeBookWithDeleteReturnsNoBookFound() throws Exception {
+        mockMvc.perform(
+                delete("/api/books/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":0,\"title\":\"Lolita\"}"))
+                .andExpect(status().isNotFound());
     }
 }
