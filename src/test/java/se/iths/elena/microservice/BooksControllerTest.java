@@ -50,6 +50,7 @@ public class BooksControllerTest {
     }
 
     @Test
+    @DisplayName("Calls Get method with return of list with all books")
     void getAllReturnsListOfAllBooks() throws Exception {
         mockMvc.perform(
                 get("/api/books").contentType("application/json"))
@@ -88,26 +89,7 @@ public class BooksControllerTest {
     }
 
     @Test
-    @DisplayName("Calls Post method with missing parameters")
-    void addNoBookWithPostReturnsNotFound() throws Exception {
-        mockMvc.perform(
-                post("/api/books/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(""))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @DisplayName("Calls Post method with parameters that already exist")
-    void addSameBookWithPostReturnsConflict() throws Exception {
-        mockMvc.perform(
-                post("/api/books/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"id\":0,\"title\":\"Lolita\"}"))
-                .andExpect(status().isConflict());
-    }
-
-    @Test
+    @DisplayName("Check through all layers of application")
     void registrationWorksThroughAllLayers() throws Exception {
         Book book = new Book(0L, "Lolita", "Vladimir Nabokov", 2011, 361, "Klassiker");
 
